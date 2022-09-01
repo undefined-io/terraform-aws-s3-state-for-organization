@@ -1,4 +1,3 @@
-
 terraform {
   required_version = ">= 1.0.0"
   required_providers {
@@ -13,22 +12,36 @@ terraform {
   }
 }
 
-provider "aws" {
-  max_retries         = 2 # default is 25
-  region              = "us-east-1"
-  allowed_account_ids = ["198604607953"] # sample account
-
-  # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/default_tags
-  # Common default tags
-  default_tags {
-    tags = {
-      "ManagedBy"   = "Terraform"
-      "Environment" = "Test"
-    }
+locals {
+  default_tags = {
+    "ManagedBy"   = "Terraform"
+    "Environment" = "Test"
   }
+}
 
-  # Use this if your workflow supports roles
-  #assume_role {
-  #  role_arn = "arn:aws:iam::000000000000:role/adequate-permission-role"
-  #}
+provider "aws" {
+  max_retries         = 2
+  region              = "us-east-1"
+  allowed_account_ids = ["944151811688"]
+
+  default_tags {
+    tags = local.default_tags
+  }
+  assume_role {
+    role_arn = "arn:aws:iam::944151811688:role/infrastructure-as-code-admin"
+  }
+}
+
+provider "aws" {
+  alias               = "usw2"
+  max_retries         = 2
+  region              = "us-west-2"
+  allowed_account_ids = ["944151811688"]
+
+  default_tags {
+    tags = local.default_tags
+  }
+  assume_role {
+    role_arn = "arn:aws:iam::944151811688:role/infrastructure-as-code-admin"
+  }
 }

@@ -1,5 +1,3 @@
-# name and tags are common variables but don't need to exist
-
 variable "name" {
   type = string
   validation {
@@ -14,4 +12,12 @@ variable "name" {
 variable "tags" {
   type    = map(string)
   default = {}
+}
+
+variable "permission_set_name_list" {
+  type        = list(string)
+  default     = []
+  description = <<-DOC
+  List of SSO PermissionSet Names with access to the state bucket
+  DOC
 }

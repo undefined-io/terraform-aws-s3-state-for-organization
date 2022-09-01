@@ -16,6 +16,7 @@ terraform {
       #   directory.
       configuration_aliases = [
         aws.primary,
+        aws.secondary,
       ]
     }
   }
