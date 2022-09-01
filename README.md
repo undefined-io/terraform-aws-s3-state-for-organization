@@ -13,7 +13,7 @@ For example, a stack with the name `aws/test/stack` will generate a DynamoDB ent
   "ID": "15c87bd1-b189-4cb5-359d-746c71e3068e",
   "Operation": "OperationTypeApply",
   "Info": "",
-  "Who": "phadviger@pop-os",
+  "Who": "username@pop-os",
   "Version": "1.2.7",
   "Created": "2022-08-25T04:08:31.335995976Z",
   "Path": "tassfo-test-s2r4-main/aws/test/stack"
