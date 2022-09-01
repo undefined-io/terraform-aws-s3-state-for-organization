@@ -26,9 +26,13 @@ locals {
   main_name   = "${var.name}-main"
   backup_name = "${var.name}-backup"
 
-  # conver the permission set name to the wildcard ARN
-  role_access_arn_list = [
+  # - Convert the permission set name to the wildcard ARN
+  # - Due to permission sets being org wide unique, we don't care about the account_id
+  #   part of the arn.
+  # arn:aws:iam::*:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_ROLENAME_a10a375889168e19
+  # arn:aws:iam::*:role/aws-reserved/sso.amazonaws.com/REGION/AWSReservedSSO_ROLENAME_a10a375889168e19
+  permission_set_arn_list = [
     for v in var.permission_set_name_list
-    : "arn:aws:iam::*:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_${v}_*"
+    : "arn:aws:iam::*:role/aws-reserved/sso.amazonaws.com*/AWSReservedSSO_${v}_*"
   ]
 }
