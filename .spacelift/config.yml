@@ -1,0 +1,8 @@
+version: "1"
+# Module version with a - suffix prevents Spacelift from tagging the module with a version
+module_version: 1.0.1
+runner_image: spacelift/runner:latest
+
+tests:
+  - name: Simple Usage
+    project_root: examples/simple-usage

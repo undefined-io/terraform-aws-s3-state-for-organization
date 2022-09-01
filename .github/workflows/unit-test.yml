@@ -1,0 +1,46 @@
+name: 'unit-test'
+on:
+  push:
+    paths-ignore:
+      # We don't want updates to README.md and other markdown documentation
+      # to trigger this action.  Feel free to adjust if some markdown would actually
+      # affect how this modules behaves.
+      - '*.md'
+jobs:
+  execute:
+    name: 'validate'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        version:
+          # Add/remove versions from this list based on what you plan
+          # to support for this module.
+          - 1.1.9
+    steps:
+      - name: 'checkout'
+        uses: actions/checkout@v2
+      - name: 'install dependencies'
+        run: |
+          ARCHITECTURE="$(dpkg --print-architecture)"
+          cd /tmp
+          wget \
+            --quiet \
+            "$(printf '%s' \
+            "https://releases.hashicorp.com/terraform" \
+            "/${{matrix.version}}/terraform_${{matrix.version}}_linux_${ARCHITECTURE}.zip" \
+            )"
+          unzip terraform_*.zip
+          sudo mv "terraform" "/usr/local/bin/terraform"
+          terraform version
+      - name: 'validate'
+        run: |
+          # The SSH key is not required to be in the repo and will only make a difference
+          # if this module accesses other private modules.
+          mkdir -p "${HOME}/.ssh" \
+            && echo "${{secrets.TF_TESTABLE_MODULE_SSH_KEY}}" > "${HOME}/.ssh/id_rsa" \
+            && chmod 400 "${HOME}/.ssh/id_rsa"
+          ls -l "${HOME}/.ssh/id_rsa"
+          make unit-test
