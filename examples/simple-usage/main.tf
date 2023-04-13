@@ -6,7 +6,7 @@ resource "random_string" "sample" {
 
 locals {
   name = "tassfo-test"
-  id = random_string.sample.id
+  id   = random_string.sample.id
   tags = {
     # Use any tags that are applicable and not already covered by default_tags
     Owner          = "DevOps"
