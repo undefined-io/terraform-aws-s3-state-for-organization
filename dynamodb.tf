@@ -1,5 +1,6 @@
 resource "aws_dynamodb_table" "locks" {
-  name         = "${var.name}-locks"
+  provider     = aws.primary
+  name         = "${local.name}-locks"
   billing_mode = "PAY_PER_REQUEST"
 
   # https://www.terraform.io/docs/backends/types/s3.html#dynamodb_table

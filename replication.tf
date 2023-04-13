@@ -1,6 +1,6 @@
 resource "aws_iam_role" "replication" {
   provider = aws.primary
-  name     = "${var.name}-replication"
+  name     = "${local.name}-replication"
   tags     = var.tags
 
   assume_role_policy = jsonencode({

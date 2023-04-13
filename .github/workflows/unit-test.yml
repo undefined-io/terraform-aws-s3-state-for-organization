@@ -18,7 +18,7 @@ jobs:
         version:
           # Add/remove versions from this list based on what you plan
           # to support for this module.
-          - 1.1.9
+          - 1.4.5
     steps:
       - name: 'checkout'
         uses: actions/checkout@v2

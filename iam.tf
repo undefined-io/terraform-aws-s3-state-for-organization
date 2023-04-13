@@ -1,6 +1,6 @@
 resource "aws_iam_role" "state" {
   provider = aws.primary
-  name     = "${var.name}-state"
+  name     = "${local.name}-state"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -20,6 +20,9 @@ resource "aws_iam_role" "state" {
         "Condition" = {
           "ArnEquals" = {
             "aws:PrincipalArn" = local.permission_set_arn_list
+          },
+          "StringEquals" : {
+            "aws:PrincipalOrgID" : local.organization_id
           }
         }
       } : null),
