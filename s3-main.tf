@@ -10,10 +10,8 @@ resource "aws_s3_bucket" "main" {
 
   tags = var.tags
 
-  lifecycle {
-    # TODO: set to true in final version
-    prevent_destroy = false
-  }
+  # NOTE: This lifecycle will be enforced via resource based polcies
+  #lifecycle { prevent_destroy = false }
 }
 
 # NOTE: No aws_s3_bucket_acl resource, since this bucket is set to BucketOwnerEnforced
@@ -30,12 +28,9 @@ resource "aws_s3_bucket_versioning" "main" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
-  provider = aws.primary
-  bucket   = aws_s3_bucket.main.id
-
-  depends_on = [
-    aws_s3_bucket_versioning.main,
-  ]
+  provider   = aws.primary
+  depends_on = [aws_s3_bucket_versioning.main]
+  bucket     = aws_s3_bucket.main.id
 
   expected_bucket_owner = local.aws_primary.account_id
 
@@ -47,12 +42,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "main" {
-  provider = aws.primary
-  bucket   = aws_s3_bucket.main.id
-
-  depends_on = [
-    aws_s3_bucket_server_side_encryption_configuration.main,
-  ]
+  provider   = aws.primary
+  depends_on = [aws_s3_bucket_server_side_encryption_configuration.main]
+  bucket     = aws_s3_bucket.main.id
 
   expected_bucket_owner = local.aws_primary.account_id
 
@@ -67,12 +59,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "main" {
 }
 
 resource "aws_s3_bucket_public_access_block" "main" {
-  provider = aws.primary
-  bucket   = aws_s3_bucket.main.id
-
-  depends_on = [
-    aws_s3_bucket_lifecycle_configuration.main,
-  ]
+  provider   = aws.primary
+  depends_on = [aws_s3_bucket_lifecycle_configuration.main]
+  bucket     = aws_s3_bucket.main.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -81,12 +70,9 @@ resource "aws_s3_bucket_public_access_block" "main" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "main" {
-  provider = aws.primary
-  bucket   = aws_s3_bucket.main.id
-
-  depends_on = [
-    aws_s3_bucket_public_access_block.main,
-  ]
+  provider   = aws.primary
+  depends_on = [aws_s3_bucket_public_access_block.main]
+  bucket     = aws_s3_bucket.main.id
 
   rule {
     object_ownership = "BucketOwnerEnforced"
@@ -94,8 +80,9 @@ resource "aws_s3_bucket_ownership_controls" "main" {
 }
 
 resource "aws_s3_bucket_policy" "main" {
-  provider = aws.primary
-  bucket   = aws_s3_bucket.main.bucket
+  provider   = aws.primary
+  depends_on = [aws_s3_bucket_ownership_controls.main]
+  bucket     = aws_s3_bucket.main.bucket
   policy = jsonencode({
     "Version" = "2012-10-17"
     "Statement" = [
@@ -135,13 +122,41 @@ resource "aws_s3_bucket_policy" "main" {
           }
         }
       },
+      # These IaC ones will likely morph into deny for anyone buta the
+      #   iac_principal_arn, using the "Condition.ArnNotEquals.aws:PrincipalArn"
+      {
+        "Sid"       = "AllowIaCAccessBucket"
+        "Effect"    = "Allow"
+        "Principal" = { "AWS" = var.iac_principal_arn }
+        "Action" = [
+          "s3:*AccelerateConfiguration",
+          "s3:*Bucket",
+          "s3:*BucketAcl",
+          "s3:*BucketCORS",
+          "s3:*BucketLogging",
+          "s3:*BucketObjectLockConfiguration",
+          "s3:*BucketOwnershipControls",
+          "s3:*BucketPolicy",
+          "s3:*BucketPublicAccessBlock",
+          "s3:*BucketRequestPayment",
+          "s3:*BucketTagging",
+          "s3:*BucketVersioning",
+          "s3:*BucketWebsite",
+          "s3:*EncryptionConfiguration",
+          "s3:*LifecycleConfiguration",
+          "s3:*ReplicationConfiguration",
+        ],
+        "Resource" = aws_s3_bucket.main.arn
+      },
+      {
+        "Sid"       = "AllowIaCAccessService"
+        "Effect"    = "Allow"
+        "Principal" = { "AWS" = var.iac_principal_arn }
+        "Action"    = "s3:*BucketOwnershipControls"
+        "Resource"  = aws_s3_bucket.main.arn
+      },
     ]
   })
-
-  depends_on = [
-    aws_s3_bucket_ownership_controls.main,
-  ]
-
 }
 
 # https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication-time-control.html

@@ -1,6 +1,7 @@
 data "aws_region" "primary" { provider = aws.primary }
 data "aws_caller_identity" "primary" { provider = aws.primary }
 data "aws_partition" "primary" { provider = aws.primary }
+data "aws_organizations_organization" "primary" { provider = aws.primary }
 locals {
   aws_primary = {
     region     = data.aws_region.primary.name
@@ -8,6 +9,7 @@ locals {
     dns_suffix = data.aws_partition.primary.dns_suffix
     partition  = data.aws_partition.primary.partition
   }
+  organization_id = data.aws_organizations_organization.primary.id
 }
 data "aws_region" "secondary" { provider = aws.secondary }
 data "aws_caller_identity" "secondary" { provider = aws.secondary }
@@ -22,9 +24,10 @@ locals {
 }
 
 locals {
+  name = trimspace(var.name)
   # S3 related variables
-  main_name   = "${var.name}-main"
-  backup_name = "${var.name}-backup"
+  main_name   = "${local.name}-main"
+  backup_name = "${local.name}-backup"
 
   # - Convert the permission set name to the wildcard ARN
   # - Due to permission sets being org wide unique, we don't care about the account_id

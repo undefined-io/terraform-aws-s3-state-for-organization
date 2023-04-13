@@ -98,3 +98,46 @@ resource "aws_s3_bucket_ownership_controls" "backup" {
 }
 
 # TODO: temporarily removed bucket policy
+resource "aws_s3_bucket_policy" "backup" {
+  provider   = aws.secondary
+  depends_on = [aws_s3_bucket_ownership_controls.backup]
+  bucket     = aws_s3_bucket.backup.bucket
+  policy = jsonencode({
+    "Version" = "2012-10-17"
+    "Statement" = [
+      # These IaC ones will likely morph into deny for anyone buta the
+      #   iac_principal_arn, using the "Condition.ArnNotEquals.aws:PrincipalArn"
+      {
+        "Sid"       = "AllowIaCAccessBucket"
+        "Effect"    = "Allow"
+        "Principal" = { "AWS" = var.iac_principal_arn }
+        "Action" = [
+          "s3:*AccelerateConfiguration",
+          "s3:*Bucket",
+          "s3:*BucketAcl",
+          "s3:*BucketCORS",
+          "s3:*BucketLogging",
+          "s3:*BucketObjectLockConfiguration",
+          "s3:*BucketOwnershipControls",
+          "s3:*BucketPolicy",
+          "s3:*BucketPublicAccessBlock",
+          "s3:*BucketRequestPayment",
+          "s3:*BucketTagging",
+          "s3:*BucketVersioning",
+          "s3:*BucketWebsite",
+          "s3:*EncryptionConfiguration",
+          "s3:*LifecycleConfiguration",
+          "s3:*ReplicationConfiguration",
+        ],
+        "Resource" = aws_s3_bucket.backup.arn
+      },
+      {
+        "Sid"       = "AllowIaCAccessService"
+        "Effect"    = "Allow"
+        "Principal" = { "AWS" = var.iac_principal_arn }
+        "Action"    = "s3:*BucketOwnershipControls"
+        "Resource"  = aws_s3_bucket.backup.arn
+      },
+    ]
+  })
+}

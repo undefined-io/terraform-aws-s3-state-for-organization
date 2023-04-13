@@ -27,7 +27,7 @@ plan: clean
 	@terraform version \
 		&& cd "examples/simple-usage" \
 		&& terraform fmt --check \
-		&& terraform init \
+		&& HTTP_PROXY='' HTTPS_PROXY='' terraform init \
 		&& terraform validate \
 		&& terraform plan
 
@@ -35,7 +35,7 @@ unit-test: clean
 	@terraform version \
 		&& cd "examples/simple-usage" \
 		&& terraform fmt --check \
-		&& terraform init \
+		&& HTTP_PROXY='' HTTPS_PROXY='' terraform init \
 		&& terraform validate
 
 full-test: clean unit-test
